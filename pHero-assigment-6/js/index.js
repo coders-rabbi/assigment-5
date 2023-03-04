@@ -1,15 +1,28 @@
-const loadHubs = async () => {
+const loadHubs = async (dataLimit) => {
   const url = `https://openapi.programming-hero.com/api/ai/tools`
   const res = await fetch(url);
   const data = await res.json();
-  displayHubs(data.data);
-  toggleSpinner(true);
+  displayHubs(data.data, dataLimit);
 }
-const displayHubs = hub => {
+
+const displayHubs = (hub, dataLimit) => {
   const hubContainer = document.getElementById('hub-container');
 
-  // Show all cards
-  // const showAll = hub = hub.slice(0, 4);
+  // hub.tools = hub.tools.slice(0, 6);
+  const showAll = document.getElementById('show-all');
+  if (dataLimit && hub.tools.length > 6) {
+    hub.tools = hub.tools.slice(0, 6);
+    showAll.classList.remove('d-none');
+  }
+  else {
+    showAll.classList.add('d-none');
+  }
+
+
+  document.getElementById('sort-by-date').addEventListener('click', function () {
+    sortByDate()
+  });
+
   hub.tools.forEach(hub => {
     // console.log(hub);
     const hubDiv = document.createElement('div');
@@ -20,9 +33,10 @@ const displayHubs = hub => {
         <div class="card-body">
           <h5 class="card-title fw-bold">Features</h5>
           <ol type="1">
-            <li>${hub.features[1] ? hub.features[0] : 'Limited Features'}</li>
+            <li>${hub.features[0] ? hub.features[0] : 'Limited Features'}</li>
             <li>${hub.features[1] ? hub.features[1] : 'Limited Features'}</li>
             <li>${hub.features[2] ? hub.features[2] : 'Limited Features'}</li>
+            <li>${hub.features[3] ? hub.features[3] : 'No data found'}</li>
           </ol>
         </div>
         <div class="card-footer">
@@ -44,8 +58,10 @@ const displayHubs = hub => {
         </div>
       </div>
       `;
+
     hubContainer.appendChild(hubDiv);
   })
+
   // Stop Loader
   toggleSpinner(false);
 };
@@ -74,19 +90,77 @@ const displayHubDetails = hub => {
   console.log(hub);
   const modalTitle = document.getElementById('api-Modal-Title');
   modalTitle.innerText = hub.tool_name;
+  const modalDescription = document.getElementById('modal-description');
+  modalDescription.innerText = hub.description;
+
   const modalDetail = document.getElementById('modal-details');
   modalDetail.innerHTML = `
-  <p>${hub.description}</p>
-  <ol type="1">
+  <h5 class="card-title">Features</h5>
+  <ul type="1">
     <li>${hub.features[1].feature_name ? hub.features[1].feature_name : 'Limited Feature'}</li>
     <li>${hub.features[2].feature_name ? hub.features[2].feature_name : 'Limited Feature'}</li>
     <li>${hub.features[3].feature_name ? hub.features[3].feature_name : 'Limited Feature'}</li>
-  </ol>
+    
+  </ul>
+  `;
+  const modalIntegrations = document.getElementById('modal-integrations');
+  modalIntegrations.innerHTML = `
+  <h5 class="card-title">Integrations</h5>
+  <ul>
+  <li>${hub.integrations[0] ? hub.integrations[0] : 'Limited Integrations'}</li>
+  <li>${hub.integrations[1] ? hub.integrations[1] : 'Limited Integrations'}</li>
+  <li>${hub.integrations[2] ? hub.integrations[2] : 'Limited Integrations'}</li>
+  </ul>
+  `;
+  const basic = document.getElementById('basic');
+  basic.innerHTML = `
+    <h5 class="fw-bold mt-4">${hub.pricing[0].price}</h5>
+    <h5>${hub.pricing[0].plan}</h5>
+  `;
+  const pro = document.getElementById('pro');
+  pro.innerHTML = `
+    <div class="mb-5">
+    <h5 class="fw-bold mt-4">${hub.pricing[1].price}</h5>
+    <h5>${hub.pricing[1].plan}</h5> 
+    </div>
+  `;
+  const enterprise = document.getElementById('enterprise');
+  enterprise.innerHTML = `
+    <h5 class="fw-bold">${hub.pricing[2].price}</h5>
+    <h5>${hub.pricing[2].plan ? hub.pricing[2].plan : 'Enterprise'}</h5>
+  `;
+  const modalsecondColum = document.getElementById('modal-second-colum');
+  modalsecondColum.innerHTML = `
+  <div id="accuracy" style="width:150px; "
+    class="bg-danger rounded-4 position-absolute top-3 end-0 text-center me-2 mt-2 me-5">
+    <p class="text-center text-white fw-semibold fs-6 my-auto py-2">${hub.accuracy.score ? hub.accuracy.score : '0'}% Accuracy</p>
+  </div>
+  <img src="${hub.image_link[0]}" class="card-img-top rounded-1" alt="...">
+  <h4 class="mt-3">${hub.input_output_examples[1].input}</h4>
+  <p>${hub.input_output_examples[1].output}</p>
   `;
 
+};
+
+const fullDataLoad = (dataLimit) => {
+  toggleSpinner(true);
+  loadHubs(dataLimit);
 }
+fullDataLoad(6);
+
+document.getElementById('btn-show-all').addEventListener('click', function () {
+  // fullDataLoad();
+})
 
 
 
+loadHubs();
 
-loadHubs()
+
+const rabbi = hub =>{
+  let sortByDate = hub.tools.sort(function (a, b) {
+    var c = new Date(a.published_in);
+    var d = new Date(b.published_in);
+    return c - d;
+  });
+}
